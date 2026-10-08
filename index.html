@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="lv"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RIGA COMM 2026 – plānotājs</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f7fb;--fg:#161a2b;--mut:#6b7186;--card:#fff;--line:#dfe2ee;--acc:#e8336d;--gray:#d4d6de;--grayt:#8d91a1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1220;--fg:#eceef8;--mut:#9aa0b8;--card:#1a1e33;--line:#2a2f4a;--gray:#262a3d;--grayt:#6a6f88}}
+:root[data-theme="dark"]{--bg:#0f1220;--fg:#eceef8;--mut:#9aa0b8;--card:#1a1e33;--line:#2a2f4a;--gray:#262a3d;--grayt:#6a6f88}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:14px 16px 8px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+h1{font-size:18px;margin:0}
+.sub{color:var(--mut);font-size:12px}
+.tabs{display:flex;gap:6px}
+.tabs button,.clr{border:1px solid var(--line);background:var(--card);color:var(--fg);padding:7px 12px;border-radius:8px;font:inherit;cursor:pointer}
+.tabs button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+#pre{margin:0 16px 8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}#pre button{border:1px solid var(--acc);background:transparent;color:var(--acc);padding:6px 11px;border-radius:999px;font:inherit;font-size:13px;cursor:pointer}#pre button:hover{background:var(--acc);color:#fff}#pre .sub{width:100%}
+#sum{margin:0 16px 8px;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:10px}
+#sum ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px}
+#sum li{font-size:13px}#sum li b{color:var(--acc)}
+.wrap{margin:0 16px 24px;border:1px solid var(--line);border-radius:10px;background:var(--card);overflow-x:auto;overflow-y:hidden}
+.grid{display:grid;grid-template-columns:48px repeat(8,minmax(150px,1fr));min-width:1250px;position:relative}
+.hd{position:sticky;top:0;z-index:4;background:var(--card);border-bottom:1px solid var(--line);padding:8px 6px;font-weight:600;font-size:12px;text-align:center}
+.ax{position:relative}.ax span{position:absolute;right:6px;font-size:11px;color:var(--mut);transform:translateY(-50%)}
+.col{position:relative;border-left:1px solid var(--line)}
+.ev{position:absolute;left:3px;right:3px;border:0;border-left:4px solid var(--h);border-radius:6px;background:color-mix(in srgb,var(--h) 16%,var(--card));color:var(--fg);text-align:left;padding:2px 5px;font:inherit;font-size:11px;line-height:1.25;overflow:hidden;cursor:pointer}
+.ev b{font-weight:600;margin-right:4px;color:var(--h)}
+.ev.sel{background:var(--h);color:#fff;box-shadow:0 0 0 2px var(--fg)}.ev.sel b{color:#fff}
+.ev.sel::after{content:"✓";position:absolute;right:4px;top:1px;font-weight:700}
+.ev.blk{background:repeating-linear-gradient(135deg,var(--gray) 0 6px,transparent 6px 12px),var(--gray);border-left-color:var(--grayt);color:var(--grayt);cursor:not-allowed}
+.ev.blk b{color:var(--grayt)}
+.ev.past:not(.sel){opacity:.55}
+#now{position:absolute;left:0;right:0;height:0;border-top:2px solid #ff2d2d;z-index:5;pointer-events:none}
+#now i{position:absolute;left:0;top:-10px;background:#ff2d2d;color:#fff;font:600 11px system-ui;padding:1px 5px;border-radius:0 6px 6px 0;font-style:normal}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9;max-width:90%}
+</style></head><body>
+<header>
+ <div><h1>RIGA COMM 2026 · Prezentāciju plānotājs</h1><div class="sub">Ķipsala, Rīga · laiks: Eiropa/Rīga · <span id="clk"></span></div></div>
+ <div class="tabs"><button data-d="1">8. oktobris</button><button data-d="2">9. oktobris</button></div>
+</header>
+<div id="pre"></div>
+<div id="sum"></div>
+<div class="wrap"><div class="grid" id="grid"></div></div>
+<div id="toast"></div>
+<script>
+const PPM=3,ST=[["E","Executive",340],["F","Salesforce Future",200],["D","Digital",160],["S","Smart",280],["I","IT Cluster",25],["A","Arrow",50],["W","SoftwareOne",120],["T","Tech (CSC / LVRTC)",90]];
+const RAW={1:`#E
+1100 1125 Panel: Autonomous Cars in the Baltics
+1125 1145 The CEO Is The Bottleneck. Now What?
+1145 1205 Business Case for Fleet Electrification
+1205 1230 Fireside: What Does Construction Need From Tech?
+1305 1330 Scaling is choosing what to break
+1330 1400 Panel: Beyond Email and WhatsApp
+1400 1425 Fireside: Public Tenders – B2B Channel
+1425 1450 Running the AI Transformation Twice
+1520 1550 Panel: From Energy to AI Compute
+1550 1620 Panel: Will Data Become Real Estate's Most Valuable Asset?
+1620 1645 Trust as Infrastructure: Digital Identity & CX
+#F
+1040 1100 Why Europe's AI Rules Are Its Advantage
+1100 1120 What Does the Future of CRM Look Like in the Age of AI
+1120 1140 When AI Agents Negotiate
+1140 1200 If It's Text, an AI Agent Can Run It
+1200 1220 Stop Doing It by Hand: Automate with AI
+1300 1325 From Tasks to Agents: Redesigning Work
+1325 1340 The Jagged Frontier: LLMs & Self-Service Analytics
+1340 1405 Panel: Enterprise GPT Platforms
+1405 1430 The Data Foundation for AI Factories
+1430 1455 Panel: Supercomputing in Your Business
+1515 1540 UniFi Physical Security: AI Beyond Surveillance
+1540 1600 Your AI Pilot Worked. Why Didn't the Business Change?
+1600 1620 From Data Chaos to Talking with Your Data
+1620 1640 Sovereign Vibe Coding
+1640 1700 From COTS to Agentic Processes
+#D
+1100 1120 Kill the Campaign. Catch the Signal.
+1120 1140 Building Responsible Retention in FinTech
+1140 1205 Chat: Your CEO Is a Media Channel
+1245 1310 Entering New European Markets
+1310 1335 Your Ads Aren't Broken. Your Brand Is.
+1335 1400 Designing Emails in the AI Era
+1400 1430 Panel: AI Video vs Animation Craft
+1430 1450 Full AI Visibility Playbook: Clients from ChatGPT
+1520 1545 Fireside: Competitor Signals for MarCom
+1545 1605 The AI Layer for Ads
+1605 1625 10x Better Campaign Results with AI
+1625 1645 Who Stole My Traffic? SEO to AI Search
+#S
+1100 1130 Are Your Employees Learning… or Just Clicking "Next"?
+1130 1150 You're Not AI-Ready If HR Data Lives in Five Systems
+1150 1210 AI in HR Tech: Trust, Test, Keep Human
+1210 1230 The HR Tech Is There. What Experience?
+1310 1330 Hiring for Attitude
+1330 1350 How AI Is Reshaping Workplace Learning
+1350 1420 Workforce Planning at Caffeine Lithuania
+1420 1440 AI in Hiring: What Latvian Employers Must Document
+1440 1500 Choosing the HR Tech Is Only the Beginning
+1530 1550 From HR Processes to HR Intelligence
+1550 1620 Panel: Hire, Reskill or Reduce?
+1620 1635 Bots Hiring Bots
+1635 1650 Humanoid Robots at Work
+#I
+1100 1110 Vispirms process. Tad tehnoloģija.
+1110 1120 Ko klients domā par savu WMS?
+1120 1130 Praktisks ceļvedis e-rēķinos
+1130 1150 Diskusija: Gudrā ražošana
+1200 1210 Kad biznesa cilvēki sāk būvēt paši
+1210 1220 Vai vari atļauties savu MI?
+1220 1230 Ēnu AI
+1230 1250 Diskusija: AI jau maina uzņēmumus
+1300 1310 Automatizēta datu aprite
+1310 1320 Vai HR risinājumi tikai lielajiem?
+1320 1330 Dokumentu vadības sistēma
+1330 1350 Diskusija: Digitalizācija bez mītiem
+1400 1410 Rīks ir ikvienam
+1410 1420 No paroles līdz identitātei
+1420 1430 Satelītsakari krīzes laikā
+1430 1450 Diskusija: Kiberdrošība – cilvēki
+1500 1510 No bloknota līdz MI zvanam
+1510 1520 No tehnoloģijas līdz rezultātam
+1520 1530 Pacientu neārstē post mortem
+1540 1600 Diskusija: Lielākais HealthTech mīts
+#A
+1100 1130 Global Technology to Local Impact: AI-Ready Enterprise
+1130 1200 Datakom AI: Ideas into Real AI Solutions
+1200 1230 AI in Practice: What Really Works? (IBM)
+1230 1300 Personal Productivity with Microsoft
+1330 1400 Run all Apps & Data anywhere – Nutanix
+1400 1430 When Cyber Defence Fails: Backup (Veeam)
+1430 1500 What's "Love" Got to Do with IT
+1530 1600 Stop Firefighting: AI in IT Ops (Red Hat)
+#W
+1000 1010 SoftwareOne and day focus
+1010 1030 AI Governance in Practice
+1030 1100 The AI Flywheel for Your Business
+1100 1130 Is your data ready for AI?
+1130 1200 SoftwareOne's AI Journey
+1230 1300 Microsoft MCI ar SoftwareOne
+1300 1330 AWS Partneru sadarbība un bonusi
+1330 1400 Kā finansēt digitalizācijas/AI projektus? (SEB)
+1430 1500 MI un datu suverenitāte: juridiskie riski
+1500 1530 Digital Sovereignty: Secure Innovation (AWS)
+1530 1600 Panel: data sovereignty & security
+#T
+1040 1100 CSC: Atklāšanas uzruna (tikai CSC klientiem)
+1100 1115 CSC: Jauni produkti un pakalpojumi
+1115 1145 CSC: AI – Hype into Business Value
+1145 1200 CSC: Case Study – ARS
+1200 1215 CSC: XCALLY Dialer Case Study
+1245 1300 CSC: Case Study – Rīgas namu pārvaldnieks
+1300 1330 CSC: Voice AI that gets the work done
+1330 1345 CSC: Case Study – Mogotel
+1345 1400 CSC: Case Study – Latvijas Pasts
+1400 1415 CSC: Case Study – Rīgas Zeļļi
+1415 1430 CSC: Paneļdiskusija`,
+2:`#E
+1040 1110 Global Tax Compliance (Thomson Reuters)
+1110 1135 Panel: Stablecoins in Practice
+1135 1205 Panel: The CFO's Digital Control Tower
+1240 1300 DebtTech: Technology & AI in Debt Management
+1300 1320 What Millions of Online Purchases Reveal
+1320 1340 Instant Payments for EMIs
+1340 1400 Fireside: ALTUM's Salesforce Transformation
+1400 1420 E-Signing Today, Trust Tomorrow
+1445 1505 AI & the Real Bottleneck in Collections
+1505 1525 Fireside: EXANTE & PowerApps
+1525 1550 Information Governance in Digital Reporting
+#F
+1035 1100 Cyber Resilience: Ransomware Recovery Story
+1100 1120 Cybersecurity in the Age of GenAI
+1120 1140 Two Pentesters vs. 500 Hackers
+1140 1200 Cybersecurity Strategy That Works
+1240 1300 Why More Security Tools Mean Less Security
+1300 1320 Securing the Workspace with Citrix
+1320 1340 From NIS2 to Real Cyber Resilience
+1340 1400 When Critical Digital Services Go Offline
+1430 1450 What We've Learned Helping with NIS2
+1450 1510 When AI Finds Another Way
+1510 1530 Baltic Digital Resilience
+1530 1550 SOC – Exposure Management
+#D
+1040 1110 Sell More Online – Ex-Googler K. Szymanski
+1110 1140 Panel: €500 Upfront or €50 a Month?
+1140 1210 "Hello – Are You Alive?" Marketers & AI
+1250 1310 Cross-Border Payments for E-Commerce
+1310 1330 Double E-commerce ROI with Google Ads
+1330 1350 From eCommerce to Agentic Commerce
+1350 1410 Cross-border e-commerce: Companies Failing
+1410 1430 Why Shoppers Abandon Carts in the Baltics
+1450 1510 Speed Wins the Race: 10,000 Decisions
+1510 1520 Sell More Without Spending More
+1520 1535 AI & Agentic E-commerce – Marketplaces
+1535 1600 Panel: Business Case for D2C Marketplaces
+#S
+1050 1100 Opening. Riga TechGirls Community
+1100 1125 Thinking with Diversity in Mind
+1125 1145 Women Don't Need to Be AI Engineers to Lead
+1145 1205 From the Court to the Cloud
+1245 1300 Scaling People, Not Just Products
+1300 1315 Tips & Tricks: AI as Right-Hand Woman
+1315 1330 Beyond the Prompt: Designers in the AI Era
+1330 1405 Cybersecurity Is Everyone's Business
+1440 1455 Boosting Women Investing Initiatives
+1455 1525 Panel: Investing in Startups in Latvia
+1525 1555 Panel: Start Before You're Ready
+#I
+1100 1110 Ko cilvēku plūsmas dati var pastāstīt?
+1110 1120 RixMind pieredze Kazahstānā
+1120 1130 Finansējums izaugsmei
+1130 1150 Diskusija: Finansējums – ārējie tirgi
+1200 1210 Transportam jāspēj turpināt kustību
+1210 1220 Nākotnes izaicinājumi IT
+1220 1230 Digitalizācija bez pārsteigumiem
+1230 1250 Diskusija: IT mobilitātei un loģistikai
+1300 1310 No amatnieka par inženieri
+1310 1320 "MI rīki ir, bet vai cilvēki ir gatavi?"
+1320 1330 AI maina skatīšanās ieradumus
+1330 1350 Diskusija: AI maina cilvēkus
+1500 1600 Mini Party – IT Cluster Afterparty
+#A
+1000 1030 Take Control of Your AI (Red Hat)
+1030 1120 Beyond the Hype: AI Risks You Can't Ignore
+1200 1230 Your AI Knows Too Much: DSPM (Veeam)
+1230 1300 My heart is as vulnerable as the infra
+1300 1330 Modern Apps & AI with Nutanix
+1330 1400 Beyond Personal Productivity: Microsoft
+1400 1430 Burn the Vendor: 2 min pitch
+1430 1600 Wrap Up, Networking
+#W
+1030 1040 SoftwareOne and day focus
+1040 1110 Divi gadi Nacionālās kiberdrošības likuma ietvarā
+1110 1140 NIS2 un DORA regulas: prakse
+1140 1210 Cyber Resilience amid Agentic AI
+1300 1330 AI Security in Microsoft Foundry
+1330 1400 AI will work safe, if people do the same
+1400 1430 Panel: Cybersecurity Between Law and Reality
+#T
+1000 1020 LVRTC: Atklāšana un "eParakstam 20"
+1020 1040 LVRTC: eParaksta veiksmes stāsts
+1040 1100 LVRTC: Uzticamības pakalpojumi praksē
+1100 1120 LVRTC: Attālināts e-paraksts eID lietotājiem
+1120 1140 LVRTC: eZīmogs un dokumentu automatizācija
+1140 1200 LVRTC: Droša biznesa digitālā identitāte
+1200 1300 LVRTC: Jautājumi, diskusija un sarunas`};
+const m=t=>Math.floor(t/100)*60+t%100,fm=x=>String(Math.floor(x/60)).padStart(2,"0")+":"+String(x%60).padStart(2,"0");
+const EV=[];let sid=0;
+for(const d of [1,2]){let st;RAW[d].split("\n").forEach(l=>{if(l[0]=="#")st=l[1];else{const[a,b,...r]=l.split(" ");EV.push({id:sid++,d,st,s:m(+a),e:m(+b),t:r.join(" ")})}})}
+const RANGE={1:[600,1020],2:[600,960]};
+let day=1,sel=new Set();
+try{sel=new Set(JSON.parse(localStorage.getItem("rc26sel")||"[]"))}catch(e){}
+const g=document.getElementById("grid"),$=s=>document.querySelector(s);
+function riga(){const p={};new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Riga",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(new Date()).forEach(x=>p[x.type]=x.value);return{date:`${p.year}-${p.month}-${p.day}`,min:(+p.hour%24)*60+ +p.minute+ +p.second/60,txt:`${p.hour%24<10?"0":""}${+p.hour%24}:${p.minute}`}}
+const overl=(a,b)=>a.d==b.d&&a.s<b.e&&b.s<a.e;
+const selEv=()=>EV.filter(e=>sel.has(e.id));
+function render(){
+ const [t0,t1]=RANGE[day],H=(t1-t0)*PPM,sv=selEv();
+ let h='<div class="hd"></div>'+ST.map(s=>`<div class="hd">${s[1]}</div>`).join("");
+ h+=`<div class="ax" style="height:${H}px">`;
+ for(let x=t0;x<=t1;x+=60)h+=`<span style="top:${(x-t0)*PPM}px">${fm(x)}</span>`;
+ h+="</div>";
+ const n=riga(),isT=n.date==(day==1?"2026-10-08":"2026-10-09");
+ ST.forEach(s=>{h+=`<div class="col" style="height:${H}px;background:repeating-linear-gradient(to bottom,transparent 0 ${60*PPM-1}px,var(--line) ${60*PPM-1}px ${60*PPM}px)">`;
+  EV.filter(e=>e.d==day&&e.st==s[0]).forEach(e=>{
+   const on=sel.has(e.id),bl=!on&&sv.some(x=>overl(x,e)),past=isT&&e.e<=n.min;
+   h+=`<button class="ev${on?" sel":""}${bl?" blk":""}${past?" past":""}" data-id="${e.id}" style="--h:hsl(${s[2]} 70% 45%);top:${(e.s-t0)*PPM}px;height:${(e.e-e.s)*PPM-2}px" title="${fm(e.s)}–${fm(e.e)} ${e.t.replace(/"/g,"&quot;")}"><b>${fm(e.s)}</b>${e.t}</button>`});
+  h+="</div>"});
+ h+=`<div id="now"><i></i></div>`;
+ g.innerHTML=h;
+ document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",+b.dataset.d==day));
+ now();summary();
+}
+function now(){
+ const n=riga(),[t0,t1]=RANGE[day],isT=n.date==(day==1?"2026-10-08":"2026-10-09"),el=$("#now");
+ $("#clk").textContent="tagad "+n.txt;
+ if(!el)return;
+ if(isT&&n.min>=t0&&n.min<=t1){el.style.display="block";el.style.top=(g.querySelector(".hd").offsetHeight+(n.min-t0)*PPM)+"px";el.firstChild.textContent=n.txt}else el.style.display="none";
+}
+function summary(){
+ const l=selEv().sort((a,b)=>a.d-b.d||a.s-b.s);
+ $("#sum").innerHTML=l.length?`<b>Mans plāns (${l.length})</b> <button class="clr" id="clr">Notīrīt</button><ul>`+l.map(e=>`<li><b>${e.d==1?"8.10":"9.10"} ${fm(e.s)}–${fm(e.e)}</b> · ${ST.find(s=>s[0]==e.st)[1]} · ${e.t}</li>`).join("")+"</ul>":`<span class="sub">Uzspied uz prezentācijas, lai to izvēlētos – pārklājošās kļūs pelēkas.</span>`;
+ const c=$("#clr");if(c)c.onclick=()=>{sel.clear();save();render()};
+}
+function save(){try{localStorage.setItem("rc26sel",JSON.stringify([...sel]))}catch(e){}}
+let tt;function toast(x){const t=$("#toast");t.textContent=x;t.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>t.style.opacity=0,2200)}
+g.addEventListener("click",ev=>{
+ const b=ev.target.closest(".ev");if(!b)return;const e=EV[+b.dataset.id];
+ if(sel.has(e.id)){sel.delete(e.id)}
+ else{const c=selEv().find(x=>overl(x,e));if(c){toast(`Pārklājas ar: ${fm(c.s)} ${c.t}`);return}sel.add(e.id)}
+ save();render();
+});
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{day=+b.dataset.d;render();scrollNow()});
+function scrollNow(){const n=riga();if(n.date==(day==1?"2026-10-08":"2026-10-09")){const[t0]=RANGE[day];window.scrollTo({top:Math.max(0,g.getBoundingClientRect().top+scrollY+(n.min-t0)*PPM-180)})}}
+const PRE=[
+["Country Manager","Tirgus ieeja, vietējā ekosistēma, publiskie iepirkumi un izaugsme",["1F1040","1E1100","1E1125","1D1245","1E1330","1E1400","1E1425","1E1520","1E1620","2D1040","2D1110","2D1250","2E1340","2E1400","2D1520","2D1535"]],
+["Chief Commercial Officer","Pārdošana, CRM, jauni tirgi, klientu pieredze un e-komercija",["1F1100","1F1120","1D1140","1D1245","1D1310","1E1400","1D1430","1F1540","1E1620","2D1040","2D1110","2D1250","2D1310","2D1330","2D1350","2D1410","2D1535"]],
+["Chief Financial Officer","Finansējums, regulācija, riski, maksājumi, ROI un datu suverenitāte",["1F1040","1E1145","1W1230","1W1300","1W1330","1E1400","1W1430","1W1500","1W1530","2E1040","2E1110","2E1135","2E1240","2E1320","2E1340","2E1445","2E1505","2E1525"]],
+["Chief Marketing Officer","Kampaņas, zīmols, AI reklāmās un SEO, e-pasts, mārketinga rezultāti",["1F1040","1D1100","1D1120","1D1140","1D1245","1D1310","1D1335","1D1400","1D1430","1D1520","1D1545","1D1605","1D1625","2D1040","2D1110","2D1140","2D1310","2D1330","2D1410","2D1520","2D1535"]]];
+function applyPre(i){const s=new Set();PRE[i][2].forEach(k=>{const e=EV.find(x=>x.d==+k[0]&&x.st==k[1]&&x.s==m(+k.slice(2)));if(e)s.add(e.id)});sel=s;save();render();toast("Ielādēts plāns: "+PRE[i][0])}
+$("#pre").innerHTML='<span class="sub">Gatavi piedāvājumi pēc amata (aizstāj tavu pašreizējo izvēli; pēc tam vari pielāgot):</span>'+PRE.map((p,i)=>`<button data-p="${i}" title="${p[1]}">${p[0]}</button>`).join("");
+$("#pre").onclick=e=>{const b=e.target.closest("button");if(b)applyPre(+b.dataset.p)};
+if(riga().date=="2026-10-09")day=2;
+render();scrollNow();setInterval(now,15000);setInterval(render,60000);
+</script></body></html>
